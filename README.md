@@ -1,29 +1,26 @@
-# FilmWeb - Streaming Application
+# FilmWeb — Streaming Application
 
-A modern film streaming web application built with React, TypeScript, and Tailwind CSS.
+A modern film streaming web app built with React, TypeScript, and Tailwind CSS for browsing, searching, and watching movies or series.
 
-## Features
-- **Home Page**: Trending movies and latest updates.
-- **Search**: Real-time search functionality for movies and series.
-- **Catalog**: Browse movies and series with pagination.
-- **Watch Page**:
-  - Integrated video player.
-  - Episode selection for TV series.
-  - Detailed information (synopsis, cast, rating, etc.).
-- **Responsive Design**: Optimized for desktop and mobile devices.
+## Highlights
+- Trending and latest content on the home page
+- Fast search for movies and series
+- Catalog browsing with pagination
+- Watch page with video player, episode selection, and detailed info
+- Responsive layout for desktop and mobile
 
 ## Tech Stack
 - **Frontend**: React (Vite)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
-- **Routing**: React Router v6
+- **Routing**: React Router v7
 - **HTTP Client**: Axios
 - **Icons**: Lucide React
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js (Latest LTS version recommended)
+- Node.js (Latest LTS recommended)
 - npm or yarn
 
 ### Installation
@@ -37,11 +34,7 @@ A modern film streaming web application built with React, TypeScript, and Tailwi
    ```
 
 ### Configuration
-The application uses an environment variable for the API URL.
-Check `.env` file:
-```env
-VITE_API_BASE_URL=https://zeldvorik.ru/rebahin21/api.php
-```
+This project uses an API for its data. Set `VITE_API_BASE_URL` in your `.env` file before running the app.
 
 ### Running Development Server
 ```bash
