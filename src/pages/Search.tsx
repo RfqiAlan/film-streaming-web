@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { searchContent } from '../services/api';
 import type { Movie } from '../types/api';
@@ -16,12 +15,16 @@ export default function Search() {
   const [results, setResults] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [yearFilter, setYearFilter] = useState('all');
+  const [minRating, setMinRating] = useState(0);
 
   const handleSearch = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) return;
     
     setLoading(true);
     setSearched(true);
+    setYearFilter('all');
+    setMinRating(0);
     
     // Update URL without reload
     setSearchParams({ q: searchQuery });
@@ -40,6 +43,50 @@ export default function Search() {
       setLoading(false);
     }
   }, [setSearchParams]);
+
+  const years = useMemo(() => {
+    const uniqueYears = Array.from(
+      new Set(results.map((item) => item.year).filter(Boolean))
+    );
+
+    return uniqueYears.sort((a, b) => {
+      const aNum = Number(a);
+      const bNum = Number(b);
+
+      if (Number.isNaN(aNum) && Number.isNaN(bNum)) {
+        return a.localeCompare(b);
+      }
+      if (Number.isNaN(aNum)) return 1;
+      if (Number.isNaN(bNum)) return -1;
+      return bNum - aNum;
+    });
+  }, [results]);
+
+  const filteredResults = useMemo(() => {
+    const ratingThreshold = minRating > 0 ? minRating : null;
+
+    return results.filter((item) => {
+      const yearMatches = yearFilter === 'all' || item.year === yearFilter;
+      const ratingValue = Number(item.rating);
+      const ratingMatches =
+        ratingThreshold === null ||
+        (!Number.isNaN(ratingValue) && ratingValue >= ratingThreshold);
+
+      return yearMatches && ratingMatches;
+    });
+  }, [minRating, results, yearFilter]);
+
+  const filtersActive = yearFilter !== 'all' || minRating > 0;
+  const ratingLabel = minRating > 0 ? minRating.toFixed(1) : 'Any';
+
+  const resetFilters = () => {
+    setYearFilter('all');
+    setMinRating(0);
+  };
+  const emptyMessage =
+    results.length > 0
+      ? 'No results match the selected filters.'
+      : 'No results found. Try a different keyword.';
 
   // Debounce or just search on submit?
   // Let's search on submit to save API calls, but maybe auto-search if query param exists
@@ -79,6 +126,70 @@ export default function Search() {
           </form>
         </div>
 
+        {searched && (
+          <div className="rounded-2xl border border-gray-800 bg-gray-900/40 p-4 sm:p-5 mb-6">
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+              <div>
+                <h2 className="text-base font-semibold text-white">Filters</h2>
+                <p className="text-sm text-gray-400">
+                  Refine results by year or minimum rating.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={resetFilters}
+                disabled={!filtersActive}
+                className="text-sm px-3 py-1.5 rounded-lg border border-gray-700 text-gray-200 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Reset filters
+              </button>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-[220px_1fr]">
+              <div className="flex flex-col gap-1">
+                <label className="text-sm text-gray-300" htmlFor="search-year">
+                  Year
+                </label>
+                <select
+                  id="search-year"
+                  value={yearFilter}
+                  onChange={(event) => setYearFilter(event.target.value)}
+                  className="bg-gray-900 border border-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600"
+                >
+                  <option value="all">All years</option>
+                  {years.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-sm text-gray-300" htmlFor="search-rating">
+                  Minimum rating
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    id="search-rating"
+                    type="range"
+                    min="0"
+                    max="10"
+                    step="0.5"
+                    value={minRating}
+                    onChange={(event) => setMinRating(Number(event.target.value))}
+                    className="w-full accent-red-600"
+                  />
+                  <span className="min-w-[3.5rem] text-sm text-white">
+                    {ratingLabel}
+                  </span>
+                </div>
+                <span className="text-xs text-gray-500">0 means any rating.</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Results */}
         {loading ? (
           <div className="flex justify-center py-20">
@@ -89,18 +200,23 @@ export default function Search() {
             {searched && (
               <div className="space-y-6">
                 <h2 className="text-xl text-gray-400">
-                  Found <span className="text-white font-bold">{results.length}</span> results for "{searchParams.get('q')}"
+                  Showing{' '}
+                  <span className="text-white font-bold">{filteredResults.length}</span>
+                  {filtersActive && (
+                    <span className="text-gray-500"> of {results.length}</span>
+                  )}{' '}
+                  results for "{searchParams.get('q')}"
                 </h2>
                 
-                {results.length > 0 ? (
+                {filteredResults.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-                    {results.map((movie) => (
+                    {filteredResults.map((movie) => (
                       <MovieCard key={movie.slug} movie={movie} />
                     ))}
                   </div>
                 ) : (
                   <div className="text-center py-20 text-gray-500">
-                    No results found. Try a different keyword.
+                    {emptyMessage}
                   </div>
                 )}
               </div>
