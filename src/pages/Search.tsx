@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { searchContent } from '../services/api';
 import type { Movie } from '../types/api';
 import Navbar from '../components/Navbar';
 import MovieCard from '../components/MovieCard';
 import { Search as SearchIcon, Loader2 } from 'lucide-react';
+import type { SVGProps } from 'react';
 
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -15,15 +17,7 @@ export default function Search() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
-  // Debounce or just search on submit?
-  // Let's search on submit to save API calls, but maybe auto-search if query param exists
-  useEffect(() => {
-    if (initialQuery) {
-      handleSearch(initialQuery);
-    }
-  }, []);
-
-  const handleSearch = async (searchQuery: string) => {
+  const handleSearch = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) return;
     
     setLoading(true);
@@ -45,7 +39,15 @@ export default function Search() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setSearchParams]);
+
+  // Debounce or just search on submit?
+  // Let's search on submit to save API calls, but maybe auto-search if query param exists
+  useEffect(() => {
+    if (initialQuery) {
+      handleSearch(initialQuery);
+    }
+  }, [handleSearch, initialQuery]);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,8 +119,28 @@ export default function Search() {
   );
 }
 
-function FilmIcon(props: any) {
-    return (
-        <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M7 3v18" /><path d="M3 7.5h4" /><path d="M3 12h18" /><path d="M3 16.5h4" /><path d="M17 3v18" /><path d="M17 7.5h4" /><path d="M17 16.5h4" /></svg>
-    )
+function FilmIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect width="18" height="18" x="3" y="3" rx="2" />
+      <path d="M7 3v18" />
+      <path d="M3 7.5h4" />
+      <path d="M3 12h18" />
+      <path d="M3 16.5h4" />
+      <path d="M17 3v18" />
+      <path d="M17 7.5h4" />
+      <path d="M17 16.5h4" />
+    </svg>
+  );
 }
