@@ -24,6 +24,8 @@ export default function Catalog({ type }: CatalogProps) {
     setPage(1);
     setItems([]);
     setHasMore(true);
+    setYearFilter('all');
+    setMinRating(0);
   }, [type, location.pathname]);
 
   useEffect(() => {

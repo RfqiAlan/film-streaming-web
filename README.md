@@ -1,4 +1,4 @@
-# FilmWeb — Streaming Application
+# PixStream — Streaming Application
 
 A modern film streaming web app built with React, TypeScript, and Tailwind CSS for browsing, searching, and watching movies or series.
 
