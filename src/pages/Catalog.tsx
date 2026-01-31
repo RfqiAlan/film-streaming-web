@@ -17,6 +17,7 @@ export default function Catalog({ type }: CatalogProps) {
   const [hasMore, setHasMore] = useState(true);
   const [yearFilter, setYearFilter] = useState('all');
   const [minRating, setMinRating] = useState(0);
+  const [genreFilter, setGenreFilter] = useState<string[]>([]);
   const location = useLocation();
 
   // Reset page when switching between movies/series via nav
@@ -26,6 +27,7 @@ export default function Catalog({ type }: CatalogProps) {
     setHasMore(true);
     setYearFilter('all');
     setMinRating(0);
+    setGenreFilter([]);
   }, [type, location.pathname]);
 
   useEffect(() => {
@@ -64,6 +66,38 @@ export default function Catalog({ type }: CatalogProps) {
   }, [type, page]);
 
   const title = type === 'movies' ? 'Movies' : 'TV Series';
+  const extractGenres = (item: Movie) => {
+    if (Array.isArray(item.genres)) {
+      return item.genres;
+    }
+    if (Array.isArray(item.genre)) {
+      return item.genre;
+    }
+    if (typeof item.genre === 'string') {
+      return item.genre.split(',');
+    }
+
+    return [];
+  };
+
+  const genres = useMemo(() => {
+    const genreMap = new Map<string, string>();
+
+    items.forEach((item) => {
+      extractGenres(item)
+        .map((genre) => genre.trim())
+        .filter(Boolean)
+        .forEach((genre) => {
+          const key = genre.toLowerCase();
+          if (!genreMap.has(key)) {
+            genreMap.set(key, genre);
+          }
+        });
+    });
+
+    return Array.from(genreMap.values()).sort((a, b) => a.localeCompare(b));
+  }, [items]);
+
   const years = useMemo(() => {
     const uniqueYears = Array.from(
       new Set(items.map((item) => item.year).filter(Boolean))
@@ -84,24 +118,37 @@ export default function Catalog({ type }: CatalogProps) {
 
   const filteredItems = useMemo(() => {
     const ratingThreshold = minRating > 0 ? minRating : null;
+    const selectedGenres = new Set(genreFilter.map((genre) => genre.toLowerCase()));
 
     return items.filter((item) => {
       const yearMatches = yearFilter === 'all' || item.year === yearFilter;
+      const itemGenres = extractGenres(item)
+        .map((genre) => genre.trim().toLowerCase())
+        .filter(Boolean);
+      const genreMatches =
+        selectedGenres.size === 0 || itemGenres.some((genre) => selectedGenres.has(genre));
       const ratingValue = Number(item.rating);
       const ratingMatches =
         ratingThreshold === null ||
         (!Number.isNaN(ratingValue) && ratingValue >= ratingThreshold);
 
-      return yearMatches && ratingMatches;
+      return yearMatches && ratingMatches && genreMatches;
     });
-  }, [items, minRating, yearFilter]);
+  }, [genreFilter, items, minRating, yearFilter]);
 
-  const filtersActive = yearFilter !== 'all' || minRating > 0;
+  const filtersActive = yearFilter !== 'all' || minRating > 0 || genreFilter.length > 0;
   const ratingLabel = minRating > 0 ? minRating.toFixed(1) : 'Any';
 
   const resetFilters = () => {
     setYearFilter('all');
     setMinRating(0);
+    setGenreFilter([]);
+  };
+
+  const toggleGenre = (genre: string) => {
+    setGenreFilter((prev) =>
+      prev.includes(genre) ? prev.filter((item) => item !== genre) : [...prev, genre]
+    );
   };
 
   const emptyMessage =
@@ -144,7 +191,7 @@ export default function Catalog({ type }: CatalogProps) {
               </button>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-[220px_1fr]">
+            <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
               <div className="flex flex-col gap-1">
                 <label className="text-sm text-gray-300" htmlFor="catalog-year">
                   Year
@@ -185,6 +232,40 @@ export default function Catalog({ type }: CatalogProps) {
                 </div>
                 <span className="text-xs text-gray-500">0 means any rating.</span>
               </div>
+            </div>
+
+            <div className="mt-4 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <label className="text-sm text-gray-300">Genres</label>
+                {genreFilter.length > 0 && (
+                  <span className="text-xs text-gray-500">
+                    {genreFilter.length} selected
+                  </span>
+                )}
+              </div>
+              {genres.length === 0 ? (
+                <p className="text-xs text-gray-500">Genres are not available for this data.</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {genres.map((genre) => {
+                    const isSelected = genreFilter.includes(genre);
+                    return (
+                      <button
+                        key={genre}
+                        type="button"
+                        onClick={() => toggleGenre(genre)}
+                        className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                          isSelected
+                            ? 'border-red-500 bg-red-600 text-white'
+                            : 'border-gray-700 text-gray-200 hover:border-red-500/70 hover:text-white'
+                        }`}
+                      >
+                        {genre}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>

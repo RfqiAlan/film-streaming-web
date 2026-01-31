@@ -5,6 +5,8 @@ export interface Movie {
   rating: string;
   year: string;
   type: 'movie' | 'series';
+  genres?: string[];
+  genre?: string | string[];
 }
 
 export interface MovieDetail {
