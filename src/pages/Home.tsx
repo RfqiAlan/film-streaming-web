@@ -4,10 +4,12 @@ import type { Movie } from '../types/api';
 import Navbar from '../components/Navbar';
 import HeroSection from '../components/HeroSection';
 import MovieCard from '../components/MovieCard';
+import { getRecentlyViewed } from '../utils/recentlyViewed';
 
 export default function Home() {
   const [trending, setTrending] = useState<Movie[]>([]);
   const [latest, setLatest] = useState<Movie[]>([]);
+  const [recentlyViewed, setRecentlyViewed] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const skeletonItems = Array.from({ length: 10 });
 
@@ -36,6 +38,10 @@ export default function Home() {
     };
 
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    setRecentlyViewed(getRecentlyViewed());
   }, []);
 
   if (loading) {
@@ -106,6 +112,19 @@ export default function Home() {
       <HeroSection featured={heroMovie} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 relative z-10 space-y-12">
+        {recentlyViewed.length > 0 && (
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+              <span className="w-1 h-6 bg-red-600 rounded-full"></span>
+              Recently Viewed
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+              {recentlyViewed.map((movie) => (
+                <MovieCard key={movie.slug} movie={movie} />
+              ))}
+            </div>
+          </section>
+        )}
         {/* Trending Section */}
         {trending.length > 0 && (
           <section>

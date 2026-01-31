@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getDetail } from '../services/api';
-import type { MovieDetail, Episode } from '../types/api';
+import type { Movie, MovieDetail, Episode } from '../types/api';
 import Navbar from '../components/Navbar';
 import VideoPlayer from '../components/VideoPlayer';
 import { Loader2, Calendar, Star, Globe, PlayCircle } from 'lucide-react';
+import { addRecentlyViewed } from '../utils/recentlyViewed';
 
 export default function Watch() {
   const { slug } = useParams<{ slug: string }>();
@@ -42,6 +43,21 @@ export default function Watch() {
     fetchDetail();
     window.scrollTo(0, 0);
   }, [slug]);
+
+  useEffect(() => {
+    if (!detail) return;
+
+    const viewedItem: Movie = {
+      title: detail.title,
+      slug: detail.slug,
+      thumbnail: detail.thumbnail,
+      rating: detail.rating,
+      year: detail.year,
+      type: detail.episodes && detail.episodes.length > 0 ? 'series' : 'movie',
+    };
+
+    addRecentlyViewed(viewedItem);
+  }, [detail]);
 
   const handleEpisodeChange = (episode: Episode) => {
     setActiveEpisode(episode);
