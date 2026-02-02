@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 import VideoPlayer from '../components/VideoPlayer';
 import { Loader2, Calendar, Star, Globe, PlayCircle } from 'lucide-react';
 import { addRecentlyViewed } from '../utils/recentlyViewed';
+import { addWatchHistory } from '../utils/watchHistory';
 
 export default function Watch() {
   const { slug } = useParams<{ slug: string }>();
@@ -57,6 +58,7 @@ export default function Watch() {
     };
 
     addRecentlyViewed(viewedItem);
+    addWatchHistory(viewedItem);
   }, [detail]);
 
   const handleEpisodeChange = (episode: Episode) => {

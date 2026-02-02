@@ -3,6 +3,7 @@ import Home from './pages/Home';
 import Catalog from './pages/Catalog';
 import Search from './pages/Search';
 import Watch from './pages/Watch';
+import History from './pages/History';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/movies" element={<Catalog type="movies" />} />
         <Route path="/series" element={<Catalog type="series" />} />
         <Route path="/search" element={<Search />} />
+        <Route path="/history" element={<History />} />
         <Route path="/watch/:slug" element={<Watch />} />
       </Routes>
     </BrowserRouter>

@@ -1,4 +1,4 @@
-import { Film, Home, Search, Tv } from 'lucide-react';
+import { Film, History, Home, Search, Tv } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 export default function Navbar() {
@@ -43,6 +43,13 @@ export default function Navbar() {
             >
               <Search className="w-5 h-5" />
               <span className="hidden sm:inline">Search</span>
+            </Link>
+            <Link 
+              to="/history" 
+              className={`flex items-center gap-2 hover:text-white transition-colors ${isActive('/history') ? 'text-white' : 'text-gray-400'}`}
+            >
+              <History className="w-5 h-5" />
+              <span className="hidden sm:inline">Riwayat</span>
             </Link>
           </div>
         </div>
